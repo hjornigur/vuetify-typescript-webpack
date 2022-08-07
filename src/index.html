@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>The Best Deals™</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+<body>
+<div id="app">
+<v-app>
+<!-- <v-navigation-drawer app>
+</v-navigation-drawer> -->
+
+<v-app-bar app>
+    <v-row>
+        <!-- <v-spacer></v-spacer> -->
+        <v-col v-if="redirectUrl">
+            <a :href="redirectUrl">
+                <img src="https://web.ccpgamescdn.com/eveonlineassets/developers/eve-sso-login-white-large.png">
+
+                </img>
+            </a>
+        </v-col>
+        <v-col>
+            <v-btn @click="getMyOrders">get orders</v-btn>
+        </v-col>
+        <!-- 📋 Экспорт в Market Quickbar -->
+        <v-col v-if="table.items.length && !loading">
+            <v-dialog
+                v-model="dialog"
+                width="500">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                    color="orange"
+                    dark
+                    v-bind="attrs"
+                    v-on="on"
+                    @click="getMarketQuickbarText">
+                        Export to Market Quickbar
+                    </v-btn>
+                </template>
+            
+                <v-card>
+                    <!-- <v-card-title class="headline grey lighten-2">
+
+                    </v-card-title> -->
+            
+                    <v-card-text>
+                        <v-textarea ref="toCopy"
+                                    v-model="marketQuickbarText">
+                        </v-textarea>
+                    </v-card-text>
+            
+                    <v-divider></v-divider>
+            
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn
+                            color="primary"
+                            text
+                            @click="dialog = false">
+                            Close
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+        </v-col>
+        <v-spacer></v-spacer>
+    </v-row>
+</v-app-bar>
+<v-main>
+    <v-container fluid>
+        <!-- 🕹️ Фильтры -->
+        <v-row>
+            <v-col>
+                <v-btn @click="newSettingsPreset" color="purple">
+                    New preset
+                </v-btn>
+            </v-col>
+            <v-col>
+                <v-btn color=""
+                       @click="sortPresets">
+                    Sort
+                </v-btn>
+            </v-col>
+            <!-- <v-col>
+                <v-checkbox
+                    v-model="settings.includeFolderName"
+                    label="Include folder name"
+                ></v-checkbox>
+            </v-col> -->
+            <v-col>
+                <v-select
+                    return-object
+                    :items="savedSettingsPresets"
+                    item-text="presetName"
+                    v-model="settings"
+                    outlined>
+                </v-select>
+            </v-col>
+            <v-col>
+                <v-text-field v-model="settings.presetName"
+                    label="Preset name">
+                </v-text-field>
+            </v-col>
+            <v-col>
+                <v-btn @click="scan" color="orange"
+                       v-if="this.SwaggerClient && !loading">
+                    Scan
+                </v-btn>
+                <v-progress-circular
+                    v-if="!this.SwaggerClient || loading"
+                    color="orange"
+                    indeterminate>
+                </v-progress-circular>
+            </v-col>
+            <v-col>
+                <v-select
+                    loading="!regions.length"
+                    :items="regions"
+                    item-text="name"
+                    item-value="region_id"
+                    v-model="settings.selected_region"
+                    outlined>
+                </v-select>
+            </v-col>
+            <v-spacer></v-spacer>
+            <v-col>
+                <v-btn color=""
+                       @click="deletePreset">
+                    <v-icon>mdi-delete-alert</v-icon>
+                </v-btn>
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col>
+                <v-text-field v-model="settings.minPrice"
+                    label="Min item price, kk"
+                    type="number">
+                </v-text-field>
+            </v-col>
+            <v-col>
+                <v-text-field v-model="settings.maxPrice"
+                    label="Max item price, kk"
+                    type="number">
+                </v-text-field>
+            </v-col>
+            <v-col>
+                <v-text-field v-model="settings.minMargin"
+                    label="Min margin"
+                    type="number">
+                </v-text-field>
+            </v-col>
+            <v-col>
+                <v-text-field v-model="settings.minVolumeAverage"
+                    label="Min volume average"
+                    type="number">
+                </v-text-field>
+            </v-col>
+            <v-col>
+                <v-text-field v-model="settings.maxCompetition"
+                    label="Max competition"
+                    type="number">
+                </v-text-field>
+            </v-col>
+            <v-col>
+                <v-select
+                    label="Competition factor"
+                    :items="competitionFactors"
+                    v-model="settings.competitionFactor"
+                    outlined>
+                </v-select>
+            </v-col>
+            <v-col>
+                <v-select
+                    label="Presence factor"
+                    :items="presenceFactors"
+                    v-model="settings.presenceFactor"
+                    outlined>
+                </v-select>
+            </v-col>
+                <v-checkbox
+                    v-model="settings.volumeHeuristics"
+                    label="Volume heuristics"
+                ></v-checkbox>
+            </v-col>
+            <!-- <v-col>
+                <v-checkbox
+                    v-model="settings.competitionHeuristics"
+                    label="Competition heuristics"
+                ></v-checkbox>
+            </v-col> -->
+        </v-row>
+        <!-- 📜 Таблица -->
+        <v-row>
+            <v-data-table
+                    v-if="table.items.length"
+                    :options="table.options"
+                    :headers="table.headers"
+                    :items="table.items"
+                    :expanded="table.items"
+                    v-model="table.selected"
+                    :items-per-page="15"
+                    elevation="1"
+                    item-key="name"
+                    show-select
+                    show-expand
+                    dense>
+                <!-- Настройки колонок в хедерах -->
+                <template v-slot:header.sell_price>
+                    <v-icon>mdi-cart-arrow-up</v-icon>
+                </template>
+                <template v-slot:header.buy_price>
+                    <v-icon>mdi-cart-arrow-down</v-icon>
+                </template>
+                <template v-slot:header.volume_average>
+                    <v-icon>mdi-repeat</v-icon>
+                </template>
+                <template v-slot:header.competition>
+                    <v-icon>mdi-account-group</v-icon>
+                </template>
+                <!-- <template v-slot:header.sell_average_24h>
+                    <v-icon>mdi-delta</v-icon>
+                </template>
+                <template v-slot:header.buy_average_24h>
+                    <v-icon>mdi-delta</v-icon>
+                </template> -->
+
+                <!-- Настройки колонок в теле таблицы -->
+
+                <template v-slot:item.competition="{ item }">
+                    {{ item.competitionSell }}/{{ item.competitionBuy }}
+                </template>
+
+                <template v-slot:item.image="{ item }">
+                    <v-img :src="`https://images.evetech.net/types/${item.type_id}/icon`"></v-img>
+                </template>
+
+                <template v-slot:item.type_id="{ item }">
+                    <v-btn @click="debugItemInfo(item)" small>
+                        <v-icon >
+                            mdi-information-outline
+                        </v-icon>
+                    </v-btn>
+                </template>
+
+                <template v-slot:item.margin="{ item }">
+                    {{ item.margin }}%
+                </template>
+                <template v-slot:item.score_scale="{ item }">
+                    <v-rating
+                        :half-increments="table.rating.halfIncrements"
+                        half-icon="mdi-star-half"
+                        size="18"
+                        v-model="item.score_scale">
+                    </v-rating>
+                    <!-- {{ item.score_scale }} -->
+                </template>
+                <template v-slot:item.sell_price="{ item }">
+                    {{ item.sell_price | toISK }}
+                </template>
+                <template v-slot:item.buy_price="{ item }">
+                    {{ item.buy_price | toISK }}
+                </template>
+                <template v-slot:item.max_reasonable_with_relistings="{ item }">
+                    {{ item.max_reasonable_with_relistings | toISK }}
+                </template>
+                <template v-slot:item.estimated_profit="{ item }">
+                    {{ item.estimated_profit | toISK }}
+                </template>
+                <template v-slot:item.volume_recommended="{ item }">
+                    <v-badge
+                        avatar
+                        bordered
+                        overlap>
+                        <template v-slot:badge>
+                            <v-avatar>
+                                <v-img src="https://cdn.vuetifyjs.com/images/logos/v.png"></v-img>
+                            </v-avatar>
+                        </template>
+                        {{ item.volume_recommended }}%
+                    </v-badge>
+                </template>
+
+                <!-- График распределения объема sell/buy ордеров под каждым элементом таблицы -->
+                <template v-slot:expanded-item="{ headers, item }">
+                    <td :colspan="headers.length">
+                        <v-sheet class="stackSheet">
+                            <v-sparkline
+                                :gradient="table.gradientSell"
+                                height="10"
+                                line-width="0.2"
+                                padding="2"
+                                smooth="1"
+                                :value="item.sparklineSell"
+                                :show-labels="table.showLabels"
+                                label-size="3"
+                                type="trend"
+                                auto-draw>
+                                <!-- <template v-slot:label="item">
+                                    {{ item.value ? item.value : '' }}
+                                </template> -->
+                            </v-sparkline>
+                            <v-sparkline class="stackSpark"
+                                :gradient="table.gradientBuy"
+                                height="10"
+                                line-width="0.5"
+                                padding="1"
+                                smooth="1"
+                                :value="item.sparklineBuy"
+                                :show-labels="table.showLabels"
+                                label-size="3"
+                                type="bar"
+                                auto-draw>
+                                <!-- <template v-slot:label="item">
+                                    {{ item.value ? item.value : '' }}
+                                </template> -->
+                            </v-sparkline>
+                        </v-sheet>
+                    </td>
+                </template>
+            </v-data-table>
+        </v-row>
+        <!-- 📈 PROGRESS BAR -->
+        <v-row v-if="loading">
+            <v-progress-linear v-if="!indeterminate"
+                v-model="loadingProgress"
+                :color="loadingColor">
+            </v-progress-linear>
+            <v-progress-linear v-if="indeterminate"
+                indeterminate
+                :color="loadingColor">
+            </v-progress-linear>
+        </v-row>
+        <!-- 🚧 NOTIFICATIONS -->
+        <v-row>
+            <v-spacer></v-spacer>
+            <v-col>
+                <v-alert v-if="error"
+                    v-model="error"
+                    close-text="Close Alert"
+                    color="red"
+                    dismissible>
+                    {{ errorMessage }}
+                </v-alert>
+                <v-alert v-if="info"
+                    v-model="info"
+                    close-text="Close"
+                    color="blue">
+                    {{ infoMessage }}
+                </v-alert>
+            </v-col>
+            <v-spacer></v-spacer>
+        </v-row>
+        <v-row>
+            <v-textarea
+                v-model="fitting">
+            </v-textarea>
+            <v-btn @click="copyFit">
+                Copy
+            </v-btn>
+        </v-row>
+    </v-container>
+</v-main>
+<v-footer app>
+    <!-- -->
+</v-footer>
+</v-app>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+<script src="https://unpkg.com/swagger-client"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/idb@7/build/umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js" integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- <script src="./src/index.js"></script> -->
+<style>
+    .stackSheet {
+        position: relative;
+    }
+    .stackSpark {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+</style>
+</body>
+</html>
