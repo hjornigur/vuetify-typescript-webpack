@@ -25,48 +25,7 @@
             </a>
         </v-col>
         <v-col>
-            <v-btn @click="getMyOrders">get orders</v-btn>
-        </v-col>
-        <!-- 📋 Экспорт в Market Quickbar -->
-        <v-col v-if="table.items.length && !loading">
-            <v-dialog
-                v-model="dialog"
-                width="500">
-                <template v-slot:activator="{ on, attrs }">
-                    <v-btn
-                    color="orange"
-                    dark
-                    v-bind="attrs"
-                    v-on="on"
-                    @click="getMarketQuickbarText">
-                        Export to Market Quickbar
-                    </v-btn>
-                </template>
-            
-                <v-card>
-                    <!-- <v-card-title class="headline grey lighten-2">
-
-                    </v-card-title> -->
-            
-                    <v-card-text>
-                        <v-textarea ref="toCopy"
-                                    v-model="marketQuickbarText">
-                        </v-textarea>
-                    </v-card-text>
-            
-                    <v-divider></v-divider>
-            
-                    <v-card-actions>
-                        <v-spacer></v-spacer>
-                        <v-btn
-                            color="primary"
-                            text
-                            @click="dialog = false">
-                            Close
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-dialog>
+            <v-btn @click="resetAuth">reset auth</v-btn>
         </v-col>
         <v-spacer></v-spacer>
     </v-row>
@@ -75,7 +34,7 @@
     <v-container fluid>
         <!-- 🕹️ Фильтры -->
         <v-row>
-            <v-col>
+            <!-- <v-col>
                 <v-btn @click="newSettingsPreset" color="purple">
                     New preset
                 </v-btn>
@@ -85,14 +44,14 @@
                        @click="sortPresets">
                     Sort
                 </v-btn>
-            </v-col>
+            </v-col> -->
             <!-- <v-col>
                 <v-checkbox
                     v-model="settings.includeFolderName"
                     label="Include folder name"
                 ></v-checkbox>
             </v-col> -->
-            <v-col>
+            <!-- <v-col>
                 <v-select
                     return-object
                     :items="savedSettingsPresets"
@@ -105,19 +64,19 @@
                 <v-text-field v-model="settings.presetName"
                     label="Preset name">
                 </v-text-field>
-            </v-col>
+            </v-col> -->
             <v-col>
-                <v-btn @click="scan" color="orange"
+                <!-- <v-btn @click="scan" color="orange"
                        v-if="this.SwaggerClient && !loading">
                     Scan
-                </v-btn>
+                </v-btn> -->
                 <v-progress-circular
                     v-if="!this.SwaggerClient || loading"
                     color="orange"
                     indeterminate>
                 </v-progress-circular>
             </v-col>
-            <v-col>
+            <!-- <v-col>
                 <v-select
                     loading="!regions.length"
                     :items="regions"
@@ -133,9 +92,9 @@
                        @click="deletePreset">
                     <v-icon>mdi-delete-alert</v-icon>
                 </v-btn>
-            </v-col>
+            </v-col> -->
         </v-row>
-        <v-row>
+        <!-- <v-row>
             <v-col>
                 <v-text-field v-model="settings.minPrice"
                     label="Min item price, kk"
@@ -187,143 +146,13 @@
                     label="Volume heuristics"
                 ></v-checkbox>
             </v-col>
-            <!-- <v-col>
+            <v-col>
                 <v-checkbox
                     v-model="settings.competitionHeuristics"
                     label="Competition heuristics"
                 ></v-checkbox>
-            </v-col> -->
-        </v-row>
-        <!-- 📜 Таблица -->
-        <v-row>
-            <v-data-table
-                    v-if="table.items.length"
-                    :options="table.options"
-                    :headers="table.headers"
-                    :items="table.items"
-                    :expanded="table.items"
-                    v-model="table.selected"
-                    :items-per-page="15"
-                    elevation="1"
-                    item-key="name"
-                    show-select
-                    show-expand
-                    dense>
-                <!-- Настройки колонок в хедерах -->
-                <template v-slot:header.sell_price>
-                    <v-icon>mdi-cart-arrow-up</v-icon>
-                </template>
-                <template v-slot:header.buy_price>
-                    <v-icon>mdi-cart-arrow-down</v-icon>
-                </template>
-                <template v-slot:header.volume_average>
-                    <v-icon>mdi-repeat</v-icon>
-                </template>
-                <template v-slot:header.competition>
-                    <v-icon>mdi-account-group</v-icon>
-                </template>
-                <!-- <template v-slot:header.sell_average_24h>
-                    <v-icon>mdi-delta</v-icon>
-                </template>
-                <template v-slot:header.buy_average_24h>
-                    <v-icon>mdi-delta</v-icon>
-                </template> -->
-
-                <!-- Настройки колонок в теле таблицы -->
-
-                <template v-slot:item.competition="{ item }">
-                    {{ item.competitionSell }}/{{ item.competitionBuy }}
-                </template>
-
-                <template v-slot:item.image="{ item }">
-                    <v-img :src="`https://images.evetech.net/types/${item.type_id}/icon`"></v-img>
-                </template>
-
-                <template v-slot:item.type_id="{ item }">
-                    <v-btn @click="debugItemInfo(item)" small>
-                        <v-icon >
-                            mdi-information-outline
-                        </v-icon>
-                    </v-btn>
-                </template>
-
-                <template v-slot:item.margin="{ item }">
-                    {{ item.margin }}%
-                </template>
-                <template v-slot:item.score_scale="{ item }">
-                    <v-rating
-                        :half-increments="table.rating.halfIncrements"
-                        half-icon="mdi-star-half"
-                        size="18"
-                        v-model="item.score_scale">
-                    </v-rating>
-                    <!-- {{ item.score_scale }} -->
-                </template>
-                <template v-slot:item.sell_price="{ item }">
-                    {{ item.sell_price | toISK }}
-                </template>
-                <template v-slot:item.buy_price="{ item }">
-                    {{ item.buy_price | toISK }}
-                </template>
-                <template v-slot:item.max_reasonable_with_relistings="{ item }">
-                    {{ item.max_reasonable_with_relistings | toISK }}
-                </template>
-                <template v-slot:item.estimated_profit="{ item }">
-                    {{ item.estimated_profit | toISK }}
-                </template>
-                <template v-slot:item.volume_recommended="{ item }">
-                    <v-badge
-                        avatar
-                        bordered
-                        overlap>
-                        <template v-slot:badge>
-                            <v-avatar>
-                                <v-img src="https://cdn.vuetifyjs.com/images/logos/v.png"></v-img>
-                            </v-avatar>
-                        </template>
-                        {{ item.volume_recommended }}%
-                    </v-badge>
-                </template>
-
-                <!-- График распределения объема sell/buy ордеров под каждым элементом таблицы -->
-                <template v-slot:expanded-item="{ headers, item }">
-                    <td :colspan="headers.length">
-                        <v-sheet class="stackSheet">
-                            <v-sparkline
-                                :gradient="table.gradientSell"
-                                height="10"
-                                line-width="0.2"
-                                padding="2"
-                                smooth="1"
-                                :value="item.sparklineSell"
-                                :show-labels="table.showLabels"
-                                label-size="3"
-                                type="trend"
-                                auto-draw>
-                                <!-- <template v-slot:label="item">
-                                    {{ item.value ? item.value : '' }}
-                                </template> -->
-                            </v-sparkline>
-                            <v-sparkline class="stackSpark"
-                                :gradient="table.gradientBuy"
-                                height="10"
-                                line-width="0.5"
-                                padding="1"
-                                smooth="1"
-                                :value="item.sparklineBuy"
-                                :show-labels="table.showLabels"
-                                label-size="3"
-                                type="bar"
-                                auto-draw>
-                                <!-- <template v-slot:label="item">
-                                    {{ item.value ? item.value : '' }}
-                                </template> -->
-                            </v-sparkline>
-                        </v-sheet>
-                    </td>
-                </template>
-            </v-data-table>
-        </v-row>
+            </v-col>
+        </v-row> -->
         <!-- 📈 PROGRESS BAR -->
         <v-row v-if="loading">
             <v-progress-linear v-if="!indeterminate"
@@ -354,14 +183,6 @@
                 </v-alert>
             </v-col>
             <v-spacer></v-spacer>
-        </v-row>
-        <v-row>
-            <v-textarea
-                v-model="fitting">
-            </v-textarea>
-            <v-btn @click="copyFit">
-                Copy
-            </v-btn>
         </v-row>
     </v-container>
 </v-main>

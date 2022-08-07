@@ -1,31 +1,22 @@
-
-function sortBy(attr) {
-    return function (a, b) {
+function sortBy(attr: any) {
+    return function (a: any, b: any) {
         var keyA = a[attr],
-        keyB = b[attr];
+            keyB = b[attr];
         if (keyA < keyB) return -1;
         if (keyA > keyB) return 1;
         return 0;
-    }
+    };
 }
 
-function percentage(index, array) {
-    return parseInt(index / (array.length * 0.01));
+function percentage(index: number, array: string[]): number {
+    return Math.floor(index / (array.length * 0.01));
 }
 
-function today() {
-    return new Date().toJSON().slice(0,10).replace(/-/g,'/');
-}
-function hoursAgo(datetime) {
-    return Math.abs(new Date() - new Date(datetime)) / 36e5;
-}
-
-
-function wait(ms) {
+function wait(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function notify(title, body, icon, type_id) {
+function notify(title: string, body: string, icon: string, type_id: number) {
     new Notification(title, {
         body,
         tag: body,
@@ -58,4 +49,16 @@ function notify(title, body, icon, type_id) {
     */
 }
 
-export { sortBy, percentage, today, hoursAgo, wait, notify }
+function toIsk(value: any) {
+    if (typeof value !== 'number') {
+        return value;
+    }
+    var formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'ISK',
+        minimumFractionDigits: 0,
+    });
+    return formatter.format(value);
+}
+
+export { sortBy, percentage, wait, notify, toIsk };
