@@ -41,19 +41,19 @@ const devServer: DevServerConfiguration = {
             // Swap the one-time code for an access token
             console.log(code);
             console.log(refresh);
-            // try {
-            //     const info = await sso.getAccessToken(code, refresh);
+            try {
+                const info = await sso.getAccessToken(code.toString(), refresh ? true : false);
 
-            //     // Usually you'd want to store the access token
-            //     // as well as the refresh token
-            //     console.log('info', info);
+                // Usually you'd want to store the access token
+                // as well as the refresh token
+                console.log('info', info);
 
-            //     // Do whatever, for example, redirect to user page
-            //     res.json(info);
-            // } catch (error) {
-            //     console.error(error);
-            //     console.error('Error!');
-            // }
+                // Do whatever, for example, redirect to user page
+                res.json(info);
+            } catch (error) {
+                console.error(error);
+                console.error('Error!');
+            }
         });
         return middlewares;
     },
