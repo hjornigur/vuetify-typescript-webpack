@@ -9,7 +9,7 @@ import devServer from './webpack.dev-server';
 const config: Configuration = {
     mode: 'development',
     entry: {
-        index: './src/index.ts',
+        index: './src/main.ts',
     },
     module: {
         rules: [

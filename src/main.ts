@@ -1,6 +1,25 @@
-'use strict';
+// import Vue from 'vue';
+// import App from './App.vue';
+// import Vuetify from 'vuetify/lib';
+// import 'vuetify/dist/vuetify.min.css';
+
+// const Vuetify = (window as any).Vuetify;
+
+// new Vue({
+//     render: h => h(App),
+// }).$mount('#app');
+
+// 'use strict';
+
+// import {  } from './plugins/vuetify';
+
+const axios = (window as any).axios;
+
+//@ts-ignore
+// import SwaggerClient from 'swagger-client';
 
 import { wait, toIsk } from './lib/index';
+import { ApiCallError, InstanceData, MyDB } from './types';
 
 window.addEventListener('unhandledrejection', event => {
     let request = event.target; // IndexedDB native request object
@@ -10,144 +29,59 @@ window.addEventListener('unhandledrejection', event => {
     console.error(error);
 });
 
-const axios = (window as any).axios;
+// import axios from 'axios';
 const SwaggerClient = (window as any).SwaggerClient;
-const idb = (window as any).idb;
-const _ = (window as any)._;
+import { openDB } from 'idb';
+// import _ from 'lodash';
 
 const Vue = (window as any).Vue;
 const Vuetify = (window as any).Vuetify;
 
 Vue.use(Vuetify);
+
+Vue.config.productionTip = false;
 Vue.filter('toISK', toIsk);
 
-const app = new Vue({
-    el: '#app',
-    vuetify: new Vuetify(),
-    data: {
-        SwaggerClient: null,
-        db: null,
-        auth: {
-            access_token: '',
-            refresh_token: '',
-            character_id: '',
-        },
-        redirectUrl: '',
-        constants: {
-            metaGroup: {
-                attribute_id: 1692,
-                values: {
-                    storyLine: 3,
-                    faction: 4,
-                    officer: 5,
-                    deadspace: 6,
-                },
-            },
-            blueprints: 1955,
-
-            sales_tax: 0.013,
-            brokers_fee_sell: 0.01,
-            brokers_fee_buy: 0.01,
-        },
-        ignore: {
-            type_id: [
-                3571, // CONCORD Quad 3500mm Siege Artillery
-            ],
-            group_id: [
-                1301, // Services
-                873, // Capital Construction Components
-                781, // Rig Core
-                779, // Rig Launcher
-                257, // Spaceship Command
-                958, // Core Subsystem
-            ],
-            market_group_id: [
-                2412, // Standup Heavy Fighters
-                2411, // Standup Light Fighters
-                751, // Overseer's Personal Effects
-            ],
-        },
-        regions: [], // TODO: Для каждого региона - свой набор пресетов (для начала одинаковых)
-
-        loading: false,
-        loadingProgress: undefined,
-        loadingColor: 'blue',
-        indeterminate: false,
-        // loaders: [
-        //     // {
-        //     //     color: '',
-        //     //     buffer: 0,
-        //     //     progress: 0
-        //     // },
-        //     {
-        //         color: 'purple',
-        //         buffer: 100,
-        //         progress: 0
-        //     },
-        //     {
-        //         color: 'red lighten-2',
-        //         buffer: 100,
-        //         progress: 0
-        //     },
-        //     {
-        //         color: 'black',
-        //         buffer: 100,
-        //         progress: 0
-        //     },
-        // ],
-        error: false,
-        errorMessage: '',
-        info: false,
-        infoMessage: '',
-
-        table: {
-            options: {
-                sortBy: ['score_scale'],
-                sortDesc: [true],
-            },
-            headers: [
-                { text: 'Competition', value: 'competition', sortable: true },
-                { text: 'Icon', value: 'image', sortable: false },
-                { text: 'Name', value: 'name', sortable: false },
-                { text: '', value: 'type_id', sortable: false },
-                // { text: "Score", value: "score", sortable: true },
-                // { text: "Score recent", value: "scoreRecent", sortable: true },
-                { text: 'Volume', value: 'volume_average', sortable: true },
-                // { text: "Capacity", value: "capacityAverage", sortable: true },
-                { text: 'Margin', value: 'margin', sortable: true },
-                { text: 'Sell price', value: 'sell_price', sortable: true },
-                // { text: "Sell % diff", value: "sell_average_24h" },
-                { text: 'Buy price', value: 'buy_price', sortable: true },
-                // { text: "Buy % diff", value: "buy_average_24h" },
-                {
-                    text: 'Profit w relistings',
-                    value: 'max_reasonable_with_relistings',
-                    sortable: true,
-                },
-                { text: '👌', value: 'volume_recommended', sortable: false },
-                // { text: "Estimated profit", value: "estimated_profit", sortable: true },
-                { text: 'Rating', value: 'score_scale', sortable: true },
-                // { text: "Location", value: "location", sortable: true },
-                // { text: "Volume",  }
-                { text: '.', value: 'actions', sortable: false },
-            ],
-            items: [],
-            selected: [],
-            gradientSell: ['#F0F', '#00c6ff', '#FF0'],
-            gradientBuy: ['red', 'yellow', 'green'],
-            fill: false,
-            showLabels: true,
-            rating: {
-                halfIncrements: true,
-            },
-        },
-
-        dialog: false,
-
-        sessionCache: {
-            itemsInfo: {},
-        },
+const data: InstanceData = {
+    // db: undefined,
+    SwaggerClient: null,
+    auth: {
+        access_token: '',
+        refresh_token: '',
+        character_id: '',
     },
+    redirectUrl: '',
+
+    loading: false,
+    loadingProgress: undefined,
+    loadingColor: 'blue',
+    indeterminate: false,
+
+    error: false,
+    errorMessage: '',
+    info: false,
+    infoMessage: '',
+
+    dialog: false,
+
+    sessionCache: {
+        itemsInfo: {},
+    },
+};
+// window.onload = function () {
+//     var main = new Vue({
+//         el: '#main',
+//         data: {
+//             currentActivity: 'home',
+//         },
+//     });
+// };
+const app = new Vue({
+    // el: '#app',
+    // render: h => h(App),
+    // vuetify,
+    vuetify: new Vuetify(),
+    data,
     methods: {
         getClient: function () {
             console.log(this.SwaggerClient);
@@ -156,7 +90,7 @@ const app = new Vue({
             endpointCategory: string,
             endpoint: string,
             kwargs: any,
-            responseKey: string,
+            responseKey?: string,
         ) {
             let result;
             let timesFailed = 0;
@@ -190,10 +124,11 @@ const app = new Vue({
                             expires: new Date(response.headers.expires),
                             data: response,
                         },
-                        'put',
+                        true,
                     );
                     result = response[responseKey || 'body'];
-                } catch (error) {
+                } catch (e) {
+                    const error: ApiCallError = e as unknown as ApiCallError;
                     this.error = true;
                     this.errorMessage = error;
                     if (error.status == 404) {
@@ -207,7 +142,8 @@ const app = new Vue({
                     if (error.status == 403) {
                         await this.refreshToken();
                     }
-                    if ((error = 'TypeError: Failed to fetch')) {
+                    // 'TypeError: '
+                    if (error.message === 'Failed to fetch') {
                         await wait(5000);
                     }
                     timesFailed++;
@@ -215,7 +151,8 @@ const app = new Vue({
             }
             return result;
         },
-        dbSave: async function (store: any, record: any, method = 'add') {
+        dbSave: async function (store: any, record: any, update?: boolean) {
+            //@ts-ignore
             let transaction = this.db.transaction(store, 'readwrite'); // (1)
             // get an object store to operate on it
             let objectStore = transaction.objectStore(store); // (2)
@@ -224,9 +161,15 @@ const app = new Vue({
             //     debugger ;
             // }
             try {
-                await objectStore[method](record); // (3)
+                if (update) {
+                    objectStore.put(record);
+                } else {
+                    objectStore.add(record);
+                }
+                // await objectStore[method](record); // (3)
                 await transaction.done;
-            } catch (error) {
+            } catch (e) {
+                const error: Error = e as unknown as Error;
                 // ConstraintError occurs when an object with the same id already exists
                 if (error.name == 'ConstraintError') {
                     console.log('Record with such id already exists:', store, record.type_id); // handle the error
@@ -242,6 +185,7 @@ const app = new Vue({
         },
         dbGet: async function (store: any, key: string) {
             // TODO: try it without async, maybe it'll still work
+            //@ts-ignore
             let transaction = this.db.transaction(store); // (1)
             let objectStore = transaction.objectStore(store); // (2)
             try {
@@ -252,14 +196,14 @@ const app = new Vue({
             }
         },
         getItemInfo: async function (type_id: number) {
-            if (!(await this.dbGet('itemsInfo', type_id))) {
+            if (!(await this.dbGet('itemsInfo', type_id.toString()))) {
                 const itemInfo = await this.apiCall('Universe', 'get_universe_types_type_id', {
                     type_id,
                 });
                 if (!itemInfo) return;
                 await this.dbSave('itemsInfo', itemInfo);
             }
-            return await this.dbGet('itemsInfo', type_id);
+            return await this.dbGet('itemsInfo', type_id.toString());
         },
         resetLoaders: function () {
             this.loadingProgress = 0;
@@ -299,50 +243,46 @@ const app = new Vue({
         },
         getAuthFromCache: function () {
             this.auth = {
-                access_token: localStorage.getItem('access_token'),
-                refresh_token: localStorage.getItem('refresh_token'),
-                character_id: localStorage.getItem('character_id'),
+                access_token: localStorage.getItem('access_token') || '',
+                refresh_token: localStorage.getItem('refresh_token') || '',
+                character_id: localStorage.getItem('character_id') || '',
             };
         },
-        resetAuth: function () {
+        logout: function (): string {
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('character_id');
-            this.auth = {};
+            this.auth = {
+                access_token: '',
+                refresh_token: '',
+                character_id: '',
+            };
             window.location.href = 'http://localhost:8080/';
+            return '';
         },
     },
     beforeCreate: async function () {
         this.$vuetify.theme.dark = true;
+    },
+    created: async function () {
+        // if (localStorage.tableItems) {
+        //     this.table.items = JSON.parse(localStorage.tableItems);
+        // }
         this.SwaggerClient = await new SwaggerClient(
             'https://esi.evetech.net/_latest/swagger.json?datasource=tranquility',
         );
 
-        this.db = await idb.openDB('db', 3, {
+        this.db = await openDB<MyDB>('db', 3, {
             upgrade(db: any, oldVersion: any, newVersion: any, transaction: any) {
                 // perform the initialization
                 // if (newVersion === 4) {
+                console.log('wow');
                 if (!db.objectStoreNames.contains('APIcache')) {
                     // db.deleteObjectStore('APIcache');
                     db.createObjectStore('APIcache', { keyPath: 'id' });
                 }
                 if (!db.objectStoreNames.contains('itemsInfo')) {
                     db.createObjectStore('itemsInfo', { keyPath: 'type_id' });
-                }
-
-                // v2
-                if (!db.objectStoreNames.contains('itemRoughVolumeAverage')) {
-                    db.createObjectStore('itemRoughVolumeAverage', { keyPath: 'type_id' });
-                }
-
-                // v3
-                if (!db.objectStoreNames.contains('itemCompetition24h')) {
-                    db.createObjectStore('itemCompetition24h', { keyPath: 'type_id' });
-                }
-
-                // TODO: remove this?
-                if (!db.objectStoreNames.contains('marketHistory')) {
-                    db.createObjectStore('marketHistory', { keyPath: 'type_id' });
                 }
             },
         });
@@ -380,11 +320,6 @@ const app = new Vue({
         //     };
         // };
         // request.onerror = e => alert('Error', e);
-    },
-    created: async function () {
-        if (localStorage.tableItems) {
-            this.table.items = JSON.parse(localStorage.tableItems);
-        }
         if (!localStorage.quickbarCounter) {
             localStorage.quickbarCounter = 0;
         }
@@ -412,28 +347,28 @@ const app = new Vue({
     watch: {
         SwaggerClient: async function (newVal: any) {
             console.log(this.SwaggerClient.apis);
-            if (!localStorage.regions_ids) {
-                console.warn('Requesting regions IDs');
-                const { get_universe_regions } = newVal.apis.Universe;
-                localStorage.regions_ids = (await get_universe_regions()).text;
-            }
+            // if (!localStorage.regions_ids) {
+            //     console.warn('Requesting regions IDs');
+            //     const { get_universe_regions } = newVal.apis.Universe;
+            //     localStorage.regions_ids = (await get_universe_regions()).text;
+            // }
 
-            if (!localStorage.regions) {
-                console.warn('Requesting regions info');
-                const { get_universe_regions_region_id } = newVal.apis.Universe;
-                let regions = [];
-                for (let region_id of JSON.parse(localStorage.regions_ids)) {
-                    regions.push(
-                        _.pick(
-                            (await get_universe_regions_region_id({ region_id })).body,
-                            'region_id',
-                            'name',
-                        ),
-                    );
-                }
-                localStorage.regions = JSON.stringify(regions);
-            }
-            this.regions = JSON.parse(localStorage.regions);
+            // if (!localStorage.regions) {
+            //     console.warn('Requesting regions info');
+            //     const { get_universe_regions_region_id } = newVal.apis.Universe;
+            //     let regions = [];
+            //     for (let region_id of JSON.parse(localStorage.regions_ids)) {
+            //         regions.push(
+            //             _.pick(
+            //                 (await get_universe_regions_region_id({ region_id })).body,
+            //                 'region_id',
+            //                 'name',
+            //             ),
+            //         );
+            //     }
+            //     localStorage.regions = JSON.stringify(regions);
+            // }
+            // this.regions = JSON.parse(localStorage.regions);
         },
         db: async function () {
             if (localStorage.itemsInfo) {
@@ -450,4 +385,4 @@ const app = new Vue({
         //     deep: true,
         // },
     },
-});
+}).$mount('#app');
