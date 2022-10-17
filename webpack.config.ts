@@ -18,27 +18,27 @@ const config: Configuration = {
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
-            // {
-            //     test: /\.css$/,
-            //     use: ['style-loader', 'css-loader'],
-            // },
-            // {
-            //     test: /\.s(c|a)ss$/,
-            //     use: [
-            //         'vue-style-loader',
-            //         'css-loader',
-            //         {
-            //             loader: 'sass-loader',
-            //             // Requires >= sass-loader@^8.0.0
-            //             options: {
-            //                 implementation: require('sass'),
-            //                 sassOptions: {
-            //                     indentedSyntax: true, // optional
-            //                 },
-            //             },
-            //         },
-            //     ],
-            // },
+            {
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader'],
+            },
+            {
+                test: /\.s(c|a)ss$/,
+                use: [
+                    'vue-style-loader',
+                    'css-loader',
+                    {
+                        loader: 'sass-loader',
+                        // Requires >= sass-loader@^8.0.0
+                        options: {
+                            implementation: require('sass'),
+                            sassOptions: {
+                                indentedSyntax: true, // optional
+                            },
+                        },
+                    },
+                ],
+            },
         ],
     },
     devtool: 'inline-source-map',

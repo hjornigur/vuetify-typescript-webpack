@@ -33,6 +33,7 @@ window.addEventListener('unhandledrejection', event => {
 // import axios from 'axios';
 const SwaggerClient = (window as any).SwaggerClient;
 import { openDB } from 'idb';
+import vuetify from './plugins/vuetify';
 // import _ from 'lodash';
 
 const Vue = (window as any).Vue;
@@ -82,9 +83,11 @@ const data: InstanceData = {
 const app = new Vue({
     // el: '#app',
     // render: h => h(App),
-    // vuetify,
-    vuetify: new Vuetify(),
+    vuetify,
+    // vuetify: new Vuetify(),
+
     data,
+
     methods: {
         getClient: function () {
             console.log(this.SwaggerClient);
@@ -264,9 +267,11 @@ const app = new Vue({
             return '';
         },
     },
+
     beforeCreate: async function () {
         this.$vuetify.theme.dark = true;
     },
+
     created: async function () {
         // if (localStorage.tableItems) {
         //     this.table.items = JSON.parse(localStorage.tableItems);
@@ -327,6 +332,7 @@ const app = new Vue({
             localStorage.quickbarCounter = 0;
         }
     },
+
     mounted: function () {
         let vm = this;
 
@@ -347,6 +353,7 @@ const app = new Vue({
         //     false,
         // );
     },
+
     watch: {
         SwaggerClient: async function (newVal: any) {
             console.log(this.SwaggerClient.apis);

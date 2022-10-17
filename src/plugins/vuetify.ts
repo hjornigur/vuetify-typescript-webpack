@@ -1,9 +1,8 @@
+// import Vue from 'vue';
+
 const Vue = (window as any).Vue;
-import Vuetify from 'vuetify';
-import 'vuetify/dist/vuetify.min.css';
+import Vuetify from 'vuetify/lib/framework';
 
 Vue.use(Vuetify);
 
-const opts = {};
-
-export default new Vuetify(opts);
+export default new Vuetify({});
