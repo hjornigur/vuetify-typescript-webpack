@@ -1,6 +1,7 @@
 // import Vue from 'vue';
 // import App from './App.vue';
 // import Vuetify from 'vuetify/lib';
+// import Vuetify from 'vuetify';
 // import 'vuetify/dist/vuetify.min.css';
 
 // const Vuetify = (window as any).Vuetify;
@@ -36,6 +37,8 @@ import { openDB } from 'idb';
 
 const Vue = (window as any).Vue;
 const Vuetify = (window as any).Vuetify;
+
+console.warn(Vuetify);
 
 Vue.use(Vuetify);
 
