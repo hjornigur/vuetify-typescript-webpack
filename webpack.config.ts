@@ -1,8 +1,10 @@
 import * as path from 'path';
-import * as HtmlWebpackPlugin from 'html-webpack-plugin';
-import * as NodePolyfillPlugin from 'node-polyfill-webpack-plugin';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import NodePolyfillPlugin from 'node-polyfill-webpack-plugin';
 import type { Configuration } from 'webpack';
 import 'webpack-dev-server';
+
+const { VueLoaderPlugin } = require('vue-loader');
 
 import devServer from './webpack.dev-server';
 
@@ -14,8 +16,13 @@ const config: Configuration = {
     module: {
         rules: [
             {
+                test: /\.vue$/,
+                use: 'vue-loader',
+            },
+            {
                 test: /\.tsx?$/,
-                use: 'ts-loader',
+                loader: 'ts-loader',
+                options: { appendTsSuffixTo: [/\.vue$/] },
                 exclude: /node_modules/,
             },
             {
@@ -52,6 +59,7 @@ const config: Configuration = {
             inject: 'body',
         }),
         new NodePolyfillPlugin(),
+        new VueLoaderPlugin(),
     ],
     output: {
         filename: '[name].bundle.js',
