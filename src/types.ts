@@ -1,4 +1,5 @@
 import { DBSchema, IDBPDatabase } from 'idb';
+import { ESI } from './lib/esi';
 
 export interface ApiCallError {
     message: string;
@@ -6,7 +7,7 @@ export interface ApiCallError {
 }
 
 export interface InstanceData {
-    SwaggerClient: any;
+    // SwaggerClient: ESI<unknown>;
     db?: IDBPDatabase<MyDB>;
     auth: {
         access_token: string;

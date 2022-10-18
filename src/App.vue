@@ -22,7 +22,7 @@
         <v-row>
             <v-col>
                 <v-progress-circular
-                    v-if="!this.SwaggerClient || loading"
+                    v-if="loading"
                     color="orange"
                     indeterminate>
                 </v-progress-circular>
@@ -71,15 +71,16 @@
 import Vue from 'vue';
 import { openDB } from 'idb';
 
-const SwaggerClient = (window as any).SwaggerClient;
 const axios = (window as any).axios;
 
 import { wait } from './lib/index';
 import { ApiCallError, InstanceData, MyDB } from './types';
+import { ESI } from './lib/esi';
+
+const esi = new ESI();
 
 const data: InstanceData = {
     // db: undefined,
-    SwaggerClient: null,
     auth: {
         access_token: '',
         refresh_token: '',
@@ -105,78 +106,79 @@ const data: InstanceData = {
 };
 export default Vue.extend({
     name: 'App',
-    data() {
+    data(): InstanceData {
         return data;
     },
 
     methods: {
         getClient: function () {
-            console.log(this.SwaggerClient);
+            
+            // console.log(this.SwaggerClient);
         },
         apiCall: async function (
             endpointCategory: string,
             endpoint: string,
             kwargs: any,
             responseKey?: string,
-        ) {
-            let result;
-            let timesFailed = 0;
-            while (!result && timesFailed < 3) {
-                // TODO: Check whether auth is needed
-                if (kwargs) {
-                    // TODO: add structure_id check
-                    if (endpoint.includes('character_id')) kwargs.token = this.auth.access_token;
-                }
+        ): Promise<any> {
+            // let result;
+            // let timesFailed = 0;
+            // while (!result && timesFailed < 3) {
+            //     // TODO: Check whether auth is needed
+            //     if (kwargs) {
+            //         // TODO: add structure_id check
+            //         if (endpoint.includes('character_id')) kwargs.token = this.auth.access_token;
+            //     }
 
-                try {
-                    const kwargsEncoded = kwargs
-                        ? Object.entries(kwargs)
-                              .map(entry => entry.map(String).join(''))
-                              .join('')
-                        : '';
-                    const cacheKey = endpointCategory + endpoint + kwargsEncoded;
-                    const cached = await this.dbGet('APIcache', cacheKey);
+            //     try {
+            //         const kwargsEncoded = kwargs
+            //             ? Object.entries(kwargs)
+            //                   .map(entry => entry.map(String).join(''))
+            //                   .join('')
+            //             : '';
+            //         const cacheKey = endpointCategory + endpoint + kwargsEncoded;
+            //         const cached = await this.dbGet('APIcache', cacheKey);
 
-                    if (cached && cached.expires > new Date()) {
-                        return cached.data[responseKey || 'body'];
-                    }
+            //         if (cached && cached.expires > new Date()) {
+            //             return cached.data[responseKey || 'body'];
+            //         }
 
-                    const request = this.SwaggerClient.apis[endpointCategory][endpoint](kwargs);
-                    const response = await request;
+            //         const request = this.SwaggerClient.apis[endpointCategory][endpoint](kwargs);
+            //         const response = await request;
 
-                    await this.dbSave(
-                        'APIcache',
-                        {
-                            id: cacheKey,
-                            expires: new Date(response.headers.expires),
-                            data: response,
-                        },
-                        true,
-                    );
-                    result = response[responseKey || 'body'];
-                } catch (e) {
-                    const error: ApiCallError = e as unknown as ApiCallError;
-                    this.error = true;
-                    this.errorMessage = error;
-                    if (error.status == 404) {
-                        if (kwargs.type_id) {
-                            this.errorMessage = `${endpoint} info for "${
-                                (await this.dbGet('itemsInfo', kwargs.type_id)).name
-                            }" not found`;
-                        }
-                        break;
-                    }
-                    if (error.status == 403) {
-                        await this.refreshToken();
-                    }
-                    // 'TypeError: '
-                    if (error.message === 'Failed to fetch') {
-                        await wait(5000);
-                    }
-                    timesFailed++;
-                }
-            }
-            return result;
+            //         await this.dbSave(
+            //             'APIcache',
+            //             {
+            //                 id: cacheKey,
+            //                 expires: new Date(response.headers.expires),
+            //                 data: response,
+            //             },
+            //             true,
+            //         );
+            //         result = response[responseKey || 'body'];
+            //     } catch (e) {
+            //         const error: ApiCallError = e as unknown as ApiCallError;
+            //         this.error = true;
+            //         this.errorMessage = error;
+            //         if (error.status == 404) {
+            //             if (kwargs.type_id) {
+            //                 this.errorMessage = `${endpoint} info for "${
+            //                     (await this.dbGet('itemsInfo', kwargs.type_id)).name
+            //                 }" not found`;
+            //             }
+            //             break;
+            //         }
+            //         if (error.status == 403) {
+            //             await this.refreshToken();
+            //         }
+            //         // 'TypeError: '
+            //         if (error.message === 'Failed to fetch') {
+            //             await wait(5000);
+            //         }
+            //         timesFailed++;
+            //     }
+            // }
+            // return result;
         },
         dbSave: async function (store: any, record: any, update?: boolean) {
             //@ts-ignore
@@ -293,9 +295,9 @@ export default Vue.extend({
         // if (localStorage.tableItems) {
         //     this.table.items = JSON.parse(localStorage.tableItems);
         // }
-        this.SwaggerClient = await new SwaggerClient(
-            'https://esi.evetech.net/_latest/swagger.json?datasource=tranquility',
-        );
+        // this.SwaggerClient = await new SwaggerClient(
+        //     'https://esi.evetech.net/_latest/swagger.json?datasource=tranquility',
+        // );
 
         this.db = await openDB<MyDB>('db', 3, {
             upgrade(db: any, oldVersion: any, newVersion: any, transaction: any) {
@@ -328,16 +330,19 @@ export default Vue.extend({
         if (!localStorage.quickbarCounter) {
             localStorage.quickbarCounter = 0;
         }
+        // console.log(this.auth.character_id)
+        // const data = await esi.v3.getCharactersCharacterIdClones(+this.auth.character_id, { token: this.auth.access_token });
+        // console.log(data);
     },
 
-    mounted: function () {
+    mounted: async function () {
         let vm = this;
     },
 
     watch: {
-        SwaggerClient: async function (newVal: any) {
-            console.log(this.SwaggerClient.apis);
-        },
+        // SwaggerClient: async function (newVal: any) {
+        //     console.log(this.SwaggerClient.apis);
+        // },
         db: async function () {
             if (localStorage.itemsInfo) {
                 let itemsInfo = JSON.parse(localStorage.itemsInfo);
