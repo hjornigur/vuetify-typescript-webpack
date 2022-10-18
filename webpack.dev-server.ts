@@ -17,6 +17,9 @@ const sso = new SingleSignOn(CLIENT_ID, CLIENT_SECRET, CALLBACK_URI, {
     endpoint: 'https://login.eveonline.com', // optional, defaults to this
     //   userAgent: 'my-user-agent' // optional
 });
+
+import systems from '@eve-data/systems';
+
 import type { Configuration as DevServerConfiguration } from 'webpack-dev-server';
 
 const devServer: DevServerConfiguration = {
@@ -54,6 +57,17 @@ const devServer: DevServerConfiguration = {
                 console.error(error);
                 console.error('Error!');
             }
+        });
+
+        app.get('/systems', async function (req, res) {
+            const { val } = req.query;
+            const entries = systems.filter(system =>
+                system.name.toLowerCase().includes(val.toString().toLowerCase()),
+            );
+            return res.json({
+                entries,
+                count: entries.length,
+            });
         });
         return middlewares;
     },

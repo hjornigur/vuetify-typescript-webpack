@@ -18,6 +18,7 @@
 </v-app-bar>
 <v-main>
     <v-container fluid>
+        <route-manager></route-manager>
         <!-- 🕹️ Фильтры -->
         <v-row>
             <v-col>
@@ -70,6 +71,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { openDB } from 'idb';
+import RouteManager from './components/RouteManager.vue';
 
 const axios = (window as any).axios;
 
@@ -108,6 +110,9 @@ export default Vue.extend({
     name: 'App',
     data(): InstanceData {
         return data;
+    },
+    components: {
+        RouteManager
     },
 
     methods: {
